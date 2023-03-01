@@ -39,3 +39,19 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 ```
 conda create --name interactive_analysis python=3.9
 ```
+
+# Test
+```
+export PYTHONPATH=src
+export ANALYSIS_CONFIG_PATH=resources/.secret/analysis_config.json
+```
+
+sample of analysis_config.json
+```
+{
+    "strategy_calculation_log_directory": "file:///var/task/data/calc_log_data",
+    "pnl_result_conn_str": "postgresql://droid:xxx@x.x.x.x:5432/crypto",
+    "strategy_conn_str": "postgresql://droid:xxx@x.x.x.x:5432/crypto",
+    "live_trade_signal_conn_str": "postgresql://droid:xxx@x.x.x.x:5432/crypto"
+}
+```
