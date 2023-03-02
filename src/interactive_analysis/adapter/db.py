@@ -1,8 +1,8 @@
 from __future__ import annotations
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text as sql_text
 import os
-from functools import lru_cache
+from cachetools import cached, TTLCache
 # Create SqlAlchemy engine of Postgres database
 
 from ..port.model import AnalysisConfig
@@ -20,6 +20,13 @@ class PostgresEngine:
 
     def get_engine(self):
         return self.engine
+
+    @cached(cache=TTLCache(maxsize=1, ttl=60))
+    def get_connection(self):
+        return self.engine.connect()
+
+    def format_query(self, sql_query: str) -> sql_text:
+        return sql_text(sql_query)
 
     @classmethod
     def get_postgres_engine(cls, env_var_name: str) -> PostgresEngine:
