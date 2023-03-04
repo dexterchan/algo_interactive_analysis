@@ -85,3 +85,9 @@ dist: clean ## builds source and wheel package
 
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
+
+build_jupyter:
+	sh scripts/build_jupyter.sh
+
+run_jupyter:
+	docker-compose -f scripts/docker-compose/docker-compose.yaml up

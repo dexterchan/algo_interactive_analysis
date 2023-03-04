@@ -105,4 +105,5 @@ ENV/
 .vscode/
 .idea/
 
+.ipynb_checkpoints
 .secret
