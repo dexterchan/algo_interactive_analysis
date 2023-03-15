@@ -94,3 +94,9 @@ run_jupyter:
 
 build_maint:
 	sh scripts/build_maint.sh
+
+deploy_k8s_secret:
+	sh resources/deployments/k8s/upload_secret.sh
+
+deploy_k8s_maint:
+	kubectl apply -f resources/deployments/k8s/deployment.maint.yaml 
