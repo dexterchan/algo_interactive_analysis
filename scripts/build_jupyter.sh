@@ -17,4 +17,4 @@ docker build -t interactive_analysis/jupyter_notebook:${SUFFIX} \
     --target final \
     -f scripts/Dockerfile . 
 
-docker tag registry.example.com/interactive_analysis/jupyter_notebook:${SUFFIX} interactive_analysis/jupyter_notebook:${SUFFIX}
+docker tag interactive_analysis/jupyter_notebook:${SUFFIX} registry.example.com/interactive_analysis/jupyter_notebook:${SUFFIX}

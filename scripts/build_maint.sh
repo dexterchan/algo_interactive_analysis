@@ -11,4 +11,4 @@ docker build -t interactive_analysis/maintenance:${SUFFIX} \
     --build-arg BASEIMAGE=${BASEIMAGE} \
     -f scripts/Dockerfile.maint . 
 
-docker tag registry.example.com/interactive_analysis/maintenance:${SUFFIX} interactive_analysis/maintenance:${SUFFIX}
+docker tag interactive_analysis/maintenance:${SUFFIX} registry.example.com/interactive_analysis/maintenance:${SUFFIX}
