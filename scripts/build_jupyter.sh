@@ -16,3 +16,5 @@ docker build -t interactive_analysis/jupyter_notebook:${SUFFIX} \
     --build-arg SPARK_VERSION=${SPARK_VERSION} \
     --target final \
     -f scripts/Dockerfile . 
+
+docker tag registry.example.com/interactive_analysis/jupyter_notebook:${SUFFIX} interactive_analysis/jupyter_notebook:${SUFFIX}
