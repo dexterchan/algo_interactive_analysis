@@ -91,3 +91,6 @@ build_jupyter:
 
 run_jupyter:
 	docker-compose -f scripts/docker-compose/docker-compose.yaml up
+
+build_maint:
+	sh scripts/build_maint.sh
