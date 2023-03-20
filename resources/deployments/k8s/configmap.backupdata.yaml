@@ -1,0 +1,12 @@
+# declare k8s config map with a backup_data.sh script as content here
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-data
+  namespace: backtest-crypto
+data:
+  backup_data.sh: |
+    #!/bin/bash
+    cd /var/task/data
+    backupdate=$(date '+%Y%m%d')
+    tar czvf  data_process_historical_data_${backupdate}.tgz binance* kraken*
