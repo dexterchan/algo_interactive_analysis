@@ -45,6 +45,10 @@ spec:
           - name: aws-credentials
             mountPath: /var/task/.aws/
             readOnly: true
+          - name: backup-data
+            mountPath: /var/task/backup_data.sh
+            subPath: backup_data.sh
+            readOnly: true
         imagePullPolicy: Always
         command:
           - "sleep"
@@ -71,4 +75,7 @@ spec:
             items:
               - key: aws_credential.json
                 path: credentials.json
+        - name: backup-data
+          configMap:
+            name: backup-data
             

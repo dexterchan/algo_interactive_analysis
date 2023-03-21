@@ -19,6 +19,7 @@ RUN apt-get update -y && \
 RUN python3 -m pip install awscli==1.27.91
 ENV DATA_DIR=/var/task/data
 RUN mkdir -p ${RUN_DIR}
+RUN chown -R ${RUN_USER}:${RUN_USER} ${RUN_DIR}
 RUN groupadd --system --gid=9999  ${RUN_USER} && \
     useradd --system --home-dir $RUN_DIR --uid=9999 --gid=${RUN_USER} ${RUN_USER}
 
