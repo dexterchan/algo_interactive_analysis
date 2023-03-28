@@ -91,3 +91,12 @@ build_jupyter:
 
 run_jupyter:
 	docker-compose -f scripts/docker-compose/docker-compose.yaml up
+
+build_maint:
+	sh scripts/build_maint.sh
+
+deploy_k8s_secret:
+	sh resources/deployments/k8s/upload_secret.sh
+
+deploy_k8s_maint:
+	kubectl apply -f resources/deployments/k8s/deployment.maint.yaml 

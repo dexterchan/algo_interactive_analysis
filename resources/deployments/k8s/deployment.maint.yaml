@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: maint-market-data
+  name: maint-market-data
+  namespace: backtest-crypto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maint-market-data
+  template:
+    metadata:
+      labels:
+        app: maint-market-data
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: support/jupyter
+                operator: In
+                values:
+                - "true"
+      securityContext:
+        runAsUser: 9999
+        runAsGroup: 9999
+        fsGroup: 9999
+      containers:
+      - image: registry.example.com/interactive_analysis/maintenance:0.1.0-bullseye-aarch64
+        name: maintenance
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 10m
+            memory: 128Mi
+        volumeMounts:
+          - mountPath: /var/task/data
+            name: network-drive-volume
+            readOnly: false
+          - name: aws-credentials
+            mountPath: /var/task/.aws/
+            readOnly: true
+          - name: backup-data
+            mountPath: /var/task/backup_data.sh
+            subPath: backup_data.sh
+            readOnly: true
+        imagePullPolicy: Always
+        command:
+          - "sleep"
+          - "infinity"
+      tolerations:
+        - key: "workload"
+          operator: Equal
+          value: "high"
+          effect: NoSchedule
+        - key: "spark/compute"
+          operator: "Exists"
+          effect: NoSchedule
+        - key: "NO_NGINX"
+          operator: "Exists"
+          effect: NoSchedule
+      volumes:
+        - name: network-drive-volume
+          persistentVolumeClaim:
+            claimName: longhorn-backtest-crypto-pvc
+        - name: aws-credentials
+          secret:
+            secretName: aws-secret
+            defaultMode: 420
+            items:
+              - key: aws_credential.json
+                path: credentials.json
+        - name: backup-data
+          configMap:
+            name: backup-data
+            

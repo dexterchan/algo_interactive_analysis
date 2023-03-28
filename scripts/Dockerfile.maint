@@ -1,0 +1,27 @@
+ARG BASEIMAGE
+ARG CONDA_VERSION
+ARG ARCH
+ARG RUN_DIR="/var/task"
+ARG RUN_USER="appuser"
+
+
+
+FROM python:${BASEIMAGE} as base
+ARG RUN_DIR
+ARG RUN_USER
+ARG CONDA_VERSION
+ARG ARCH
+
+RUN apt-get update -y && \
+    apt-get upgrade -y && \ 
+    apt-get install -y python3-pip jq
+
+RUN python3 -m pip install awscli==1.27.91
+ENV DATA_DIR=/var/task/data
+RUN mkdir -p ${RUN_DIR}
+RUN groupadd --system --gid=9999  ${RUN_USER} && \
+    useradd --system --home-dir $RUN_DIR --uid=9999 --gid=${RUN_USER} ${RUN_USER}
+RUN chown -R ${RUN_USER}:${RUN_USER} ${RUN_DIR}
+
+
+
