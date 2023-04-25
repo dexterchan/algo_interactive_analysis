@@ -14,6 +14,7 @@ data:
     export AWS_ACCESS_KEY_ID=$(echo $aws_content | jq -r '.AWS_ACCESS_KEY_ID')
     export AWS_SECRET_ACCESS_KEY=$(echo $aws_content | jq -r '.AWS_SECRET_ACCESS_KEY')
     export AWS_DEFAULT_REGION=$(echo $aws_content | jq -r '.AWS_DEFAULT_REGION')
-    S3_PATH=s3://boar-tradingbot/marketdata/
+    S3_PATH=s3://boar-tradingbot/marketdata
+    echo upload file to ${S3_PATH}/data_process_historical_data_${backupdate}.tgz
     aws s3 cp data_process_historical_data_${backupdate}.tgz ${S3_PATH}/data_process_historical_data_${backupdate}.tgz
     rm data_process_historical_data_${backupdate}.tgz
