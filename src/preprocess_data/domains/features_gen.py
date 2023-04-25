@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 import numpy as np
 from .indicators import calculate_log_price_change
@@ -18,7 +19,7 @@ class Feature(metaclass=ABCMeta):
 
     
 
-class log_price_feature(Feature):
+class Log_Price_Feature(Feature):
     """ log price feature class
     """
     def __init__(self, df_price:pd.Series, dimension:int):
