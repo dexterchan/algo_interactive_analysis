@@ -107,3 +107,4 @@ ENV/
 
 .ipynb_checkpoints
 .secret
+data/

@@ -4,3 +4,4 @@ jupyter-console
 jupyter-core
 plotly==5.5.0
 jupyterlab
+matplotlib
