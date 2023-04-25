@@ -89,8 +89,11 @@ install: clean ## install the package to the active Python's site-packages
 build_jupyter:
 	sh scripts/build_jupyter.sh
 
-run_jupyter:
+run_jupyter_container:
 	docker-compose -f scripts/docker-compose/docker-compose.yaml up
+
+run_jupyter:
+	jupyter notebook
 
 build_maint:
 	sh scripts/build_maint.sh
@@ -100,3 +103,8 @@ deploy_k8s_secret:
 
 deploy_k8s_maint:
 	kubectl apply -f resources/deployments/k8s/deployment.maint.yaml 
+
+setup_env:
+	mamba install -c conda-forge -y --file requirements.txt
+	mamba install -c conda-forge -y --file requirements_jupyter.txt
+	mamba install -c conda-forge -y --file requirements_dev.txt
