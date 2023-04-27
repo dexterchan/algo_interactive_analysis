@@ -21,6 +21,27 @@ class Feature(metaclass=ABCMeta):
         """
         pass
 
+    def create_feature_from_raw_data_array(
+        self, raw_data_array: np.ndarray, look_back: int
+    ) -> np.ndarray:
+        """create feature from raw array with lookback
+
+        Args:
+            raw_data_array (np.ndarray): raw array
+            look_back (int): dimension of the feature, i.e. look back period
+
+        Returns:
+            np.ndarray: feature array
+        """
+        # Constract feature array of (N-look_back) x (look_back)
+        feature_array = np.zeros((len(raw_data_array) - look_back, look_back))
+
+        for i in range(look_back):
+            feature_array[:, i] = raw_data_array[
+                i : i + len(raw_data_array) - look_back
+            ]
+        return feature_array
+
 
 class Log_Price_Feature(Feature):
     """log price feature class"""
@@ -30,7 +51,7 @@ class Log_Price_Feature(Feature):
 
         Args:
             df_price (pd.Series): price series
-            dimension (int): dimension of the feature
+            dimension (int): dimension of the feature, i.e. look back period
         """
         self.df_price = df_price
         self.dimension = dimension
@@ -48,20 +69,16 @@ class Log_Price_Feature(Feature):
 
     def output_feature_array(self) -> np.ndarray:
         """output array
-
+            Note: for crossing feature, need to move the feature to left by one candle
         Returns:
             np.ndarray: array
         """
-        log_price_raw = self._calculate()
+        log_price_raw: pd.Series = self._calculate()
 
         # Constract feature array of (N-dimension) x (dimension)
-        log_price_feature_array = np.zeros(
-            (len(log_price_raw) - self.dimension, self.dimension)
+        log_price_feature_array = self.create_feature_from_raw_data_array(
+            raw_data_array=log_price_raw.values, look_back=self.dimension
         )
-        for i in range(self.dimension):
-            log_price_feature_array[:, i] = log_price_raw[
-                i : i + len(log_price_raw) - self.dimension
-            ].values
 
         return log_price_feature_array
 
@@ -84,23 +101,32 @@ class SMA_Cross_Feature(Feature):
     def __init__(
         self, df_price: pd.Series, sma_window_1: int, sma_window_2: int, dimension: int
     ) -> None:
+        """_summary_
+
+        Args:
+            df_price (pd.Series): price series
+            sma_window_1 (int): sma windows length 1
+            sma_window_2 (int): sma windows length 2
+            dimension (int): dimension of the feature, i.e. look back period
+        """
         self.df_price = df_price
         self.sma_window_1 = sma_window_1
         self.sma_window_2 = sma_window_2
         self.dimension = dimension
 
-    def _calculate(self) -> pd.Series:
+    def _calculate(self) -> np.ndarray:
         """calculate the cross over of two SMA signals
 
         Returns:
-            pd.Series: Cross over signals of two SMA
+            np.ndarray: Cross over signals of two SMA
         """
         sma_1 = calculate_simple_moving_average(self.df_price, self.sma_window_1)
         sma_2 = calculate_simple_moving_average(self.df_price, self.sma_window_2)
 
         sma_cross = self._cross_over_lineA_above_lineB(sma_1, sma_2)
-        # drop nan
-        sma_cross.dropna(inplace=True)
+
+        # Remove invalid from sma_cross
+        sma_cross = sma_cross[self.invalid_data_length :]
         return sma_cross
 
     def _cross_over_lineA_above_lineB(
@@ -120,9 +146,10 @@ class SMA_Cross_Feature(Feature):
         lineA_minus_lineB = lineA - lineB
         prev_lineA_minus_lineB = lineA_minus_lineB.shift(1)
 
-        return np.where(
+        _cross_over = np.where(
             ((lineA_minus_lineB > 0) & (prev_lineA_minus_lineB < 0)), True, False
         )
+        return _cross_over
 
     def output_feature_array(self) -> np.ndarray:
         """output array
@@ -131,16 +158,21 @@ class SMA_Cross_Feature(Feature):
             np.ndarray: array
         """
         # Constract feature array of (N-dimension) x (dimension)
-        sma_cross = self._calculate()
-        sma_cross_feature_array = np.zeros(
-            (len(sma_cross) - self.dimension, self.dimension)
+        sma_cross: np.ndarray = self._calculate()
+        sma_cross_feature_array = self.create_feature_from_raw_data_array(
+            raw_data_array=sma_cross, look_back=self.dimension
         )
-        for i in range(self.dimension):
-            sma_cross_feature_array[:, i] = sma_cross[
-                i : i + len(sma_cross) - self.dimension
-            ].values
 
         return sma_cross_feature_array
+
+    @property
+    def invalid_data_length(self) -> int:
+        """invalid data length
+
+        Returns:
+            int: invalid data length
+        """
+        return max(self.sma_window_1, self.sma_window_2) - 1
 
     def shape(self) -> tuple:
         """shape of the feature array
@@ -148,5 +180,8 @@ class SMA_Cross_Feature(Feature):
         Returns:
             tuple: shape of the feature array
         """
-        invalid_data_length = max(self.sma_window_1, self.sma_window_2) - 1
-        return len(self.df_price) - invalid_data_length - self.dimension, self.dimension
+        # invalid_data_length = max(self.sma_window_1, self.sma_window_2) - 1
+        return (
+            len(self.df_price) - self.invalid_data_length - self.dimension,
+            self.dimension,
+        )

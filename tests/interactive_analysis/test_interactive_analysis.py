@@ -5,8 +5,6 @@
 
 import unittest
 
-from interactive_analysis.port import pnl_result
-
 
 class TestInteractive_analysis(unittest.TestCase):
     """Tests for `interactive_analysis` package."""
@@ -19,5 +17,3 @@ class TestInteractive_analysis(unittest.TestCase):
 
     def test_000_something(self):
         """Test something."""
-
-
