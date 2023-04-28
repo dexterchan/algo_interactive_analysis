@@ -46,15 +46,19 @@ class Feature(metaclass=ABCMeta):
 class Log_Price_Feature(Feature):
     """log price feature class"""
 
-    def __init__(self, df_price: pd.Series, dimension: int):
+    def __init__(
+        self, df_price: pd.Series, dimension: int, normalize_value: float = 0.02
+    ):
         """initialize log price feature class
 
         Args:
             df_price (pd.Series): price series
             dimension (int): dimension of the feature, i.e. look back period
+            normalize_value(float) : normalize the price change by this value
         """
         self.df_price = df_price
         self.dimension = dimension
+        self.normalized_value: float = normalize_value
 
     def _calculate(self) -> pd.Series:
         """helper function calculate log price change from pandas series
@@ -67,11 +71,15 @@ class Log_Price_Feature(Feature):
         log_price_change = log_price_change.dropna()
         return log_price_change
 
-    def output_feature_array(self) -> np.ndarray:
+    def output_feature_array(self, normalize: bool = False) -> np.ndarray:
         """output array
             Note: for crossing feature, need to move the feature to left by one candle
+
+        Args:
+            normalize (bool, optional): Normalize the value. Defaults to False.
+
         Returns:
-            np.ndarray: array
+            np.ndarray: _description_
         """
         log_price_raw: pd.Series = self._calculate()
 
@@ -79,6 +87,9 @@ class Log_Price_Feature(Feature):
         log_price_feature_array = self.create_feature_from_raw_data_array(
             raw_data_array=log_price_raw.values, look_back=self.dimension
         )
+        # Normalize value
+        if normalize:
+            log_price_feature_array /= self.normalized_value
 
         return log_price_feature_array
 
@@ -185,3 +196,75 @@ class SMA_Cross_Feature(Feature):
             len(self.df_price) - self.invalid_data_length - self.dimension,
             self.dimension,
         )
+
+
+class RSI_Feature(Feature):
+    """calculate the RSI feature
+
+    Args:
+        Feature (_type_): _description_
+    """
+
+    def __init__(
+        self,
+        df_price: pd.Series,
+        rsi_window: int,
+        dimension: int,
+        normalize_value: float = 25,
+        offset: float = 50,
+    ) -> None:
+        """RSI feature
+            rsi feature = (rsi - offset) / normalize_value
+        Args:
+            df_price (pd.Series): market price series
+            rsi_window (int): rsi window
+            dimension (int): dimension of the feature, i.e. look back period
+            normalize_value (float, optional): normalize value. Defaults to 25.
+            offset (float, optional): offset. Defaults to 50.
+        """
+        self.df_price = df_price
+        self.rsi_window = rsi_window
+        self.dimension = dimension
+        self.normalized_value: float = normalize_value
+        self.offset: float = offset
+
+    def _calculate(self) -> pd.Series:
+        """calculate the RSI feature
+
+        Returns:
+            pd.Series: RSI feature
+        """
+        rsi = calculate_rsi(df_price=self.df_price, window=self.rsi_window)
+        # drop nan
+        rsi = rsi.dropna()
+        return rsi
+
+    def output_feature_array(self, normalize: bool = False) -> np.ndarray:
+        """output array
+
+        Args:
+            normalize (bool, optional): Normalize the value. Defaults to False.
+
+        Returns:
+            np.ndarray: array
+        """
+        # Constract feature array of (N-dimension) x (dimension)
+        rsi_raw: pd.Series = self._calculate()
+        rsi_feature_array = self.create_feature_from_raw_data_array(
+            raw_data_array=rsi_raw.values, look_back=self.dimension
+        )
+        # Normalize value
+        if normalize:
+            rsi_feature_array = (
+                rsi_feature_array - self.offset
+            ) / self.normalized_value
+
+        return rsi_feature_array
+
+    def shape(self) -> tuple:
+        """shape of the feature array
+
+        Returns:
+            tuple: shape of the feature array
+        """
+        return len(self.df_price) - self.rsi_window - self.dimension, self.dimension
