@@ -55,3 +55,6 @@ sample of analysis_config.json
     "live_trade_signal_conn_str": "postgresql://droid:xxx@x.x.x.x:5432/crypto"
 }
 ```
+
+Jupyter plotly is not stable
+jupyter labextension install jupyterlab-plotly

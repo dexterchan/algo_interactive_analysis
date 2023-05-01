@@ -38,4 +38,7 @@ def test_rsi_feature(get_test_decending_then_ascending_mkt_data) -> None:
     feature_array = rsi_feature.output_feature_array()
 
     assert len(feature_array) == len(mktdata_close) - LOOK_BACK - rsi_window
+    num_features, feature_length = rsi_feature.shape
+    assert feature_length == LOOK_BACK
+    assert num_features == len(mktdata_close) - LOOK_BACK - rsi_window
     pass

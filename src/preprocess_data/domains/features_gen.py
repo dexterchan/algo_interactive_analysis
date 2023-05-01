@@ -93,6 +93,7 @@ class Log_Price_Feature(Feature):
 
         return log_price_feature_array
 
+    @property
     def shape(self) -> tuple:
         """shape of the feature array
 
@@ -185,6 +186,7 @@ class SMA_Cross_Feature(Feature):
         """
         return max(self.sma_window_1, self.sma_window_2) - 1
 
+    @property
     def shape(self) -> tuple:
         """shape of the feature array
 
@@ -261,6 +263,7 @@ class RSI_Feature(Feature):
 
         return rsi_feature_array
 
+    @property
     def shape(self) -> tuple:
         """shape of the feature array
 
