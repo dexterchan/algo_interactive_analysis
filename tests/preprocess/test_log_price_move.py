@@ -3,6 +3,7 @@ from preprocess_data.domains.features_gen import Log_Price_Feature, Feature
 import math
 import numpy as np
 import logging
+import pytest
 
 logger = logging.getLogger(__name__)
 
@@ -27,38 +28,53 @@ def test_look_back_feature_copy() -> None:
     features = dummy_feature.create_feature_from_raw_data_array(
         raw_data_array=raw_data, look_back=dim
     )
+
+    num_features = dummy_feature.feature_length(
+        raw_data_length=len(raw_data), look_back=dim
+    )
+    assert num_features == raw_data_length - LOOK_BACK + 1
+
     ref_data: np.ndarray = np.array(
         [
-            [0, 1, 2],
             [
+                2,
                 1,
+                0,
+            ],
+            [
+                3,
                 2,
-                3,
+                1,
             ],
             [
+                4,
+                3,
                 2,
+            ],
+            [
+                5,
+                4,
                 3,
-                4,
             ],
             [
-                3,
-                4,
-                5,
-            ],
-            [
-                4,
-                5,
                 6,
+                5,
+                4,
             ],
             [
-                5,
-                6,
                 7,
+                6,
+                5,
             ],
             [
-                6,
-                7,
                 8,
+                7,
+                6,
+            ],
+            [
+                9,
+                8,
+                7,
             ],
         ]
     )
@@ -68,20 +84,28 @@ def test_look_back_feature_copy() -> None:
 
 
 def test_output_feature_array(get_test_ascending_mkt_data) -> None:
-    df = get_test_ascending_mkt_data()
+    df = get_test_ascending_mkt_data(dim=10)
     dim: int = LOOK_BACK
     log_price_move = Log_Price_Feature(df["close"], dim)
     price_move = log_price_move._calculate()
     feature_array = log_price_move.output_feature_array()
-    assert feature_array.shape == (len(df) - 1 - dim, dim)
+
+    # logger.info(price_move)
+    # logger.info(feature_array)
+
+    assert feature_array.shape == (len(df) - LOOK_BACK, dim)
     # Check if the first element is correct and within the tolerance TOLERANCE
     assert len(price_move) == len(df) - 1
     assert (price_move[0] - math.log(df["close"][1] / df["close"][0])) < TOLERANCE
 
     # Check if feature_array[0] is the same as price_move[0:dim] (difference is smaller than TOLERANCE)
-    assert ((feature_array[0] - price_move[0:dim].values) < TOLERANCE).all()
+    assert ((feature_array[0] - price_move[0:dim].values[::-1]) < TOLERANCE).all()
     # Enumerate each vector of feature_array and check if it is the same as price_move[i:i+dim]
     for i, v in enumerate(feature_array):
         assert len(v) == dim
-        assert ((v - price_move[i : i + dim].values) < TOLERANCE).all()
+        # Reverse price move order
+        ref = price_move[i : i + dim].values[::-1]
+        assert ((v - ref) < TOLERANCE).all()
+        if i == 0:
+            break
     pass

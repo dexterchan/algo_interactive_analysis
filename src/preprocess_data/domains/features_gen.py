@@ -8,6 +8,10 @@ from .indicators import (
 )
 import pandas as pd
 
+from cryptomarketdata.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 class Feature(metaclass=ABCMeta):
     """feature class"""
@@ -33,14 +37,17 @@ class Feature(metaclass=ABCMeta):
         Returns:
             np.ndarray: feature array
         """
-        # Constract feature array of (N-look_back) x (look_back)
-        feature_array = np.zeros((len(raw_data_array) - look_back, look_back))
+        # Constract feature array of (N-look_back+1) x (look_back)
+        feature_array = np.zeros((len(raw_data_array) - look_back + 1, look_back))
 
         for i in range(look_back):
-            feature_array[:, i] = raw_data_array[
-                i : i + len(raw_data_array) - look_back
+            feature_array[:, look_back - 1 - i] = raw_data_array[
+                i : i + len(raw_data_array) - look_back + 1
             ]
         return feature_array
+
+    def feature_length(self, raw_data_length: int, look_back: int) -> tuple:
+        return raw_data_length - look_back + 1
 
 
 class Log_Price_Feature(Feature):
@@ -100,7 +107,11 @@ class Log_Price_Feature(Feature):
         Returns:
             tuple: shape of the feature array
         """
-        return len(self.df_price) - 1 - self.dimension, self.dimension
+        # minus one to account for price difference
+        return (
+            self.feature_length(len(self.df_price), self.dimension) - 1,
+            self.dimension,
+        )
 
 
 class SMA_Cross_Feature(Feature):
@@ -165,7 +176,8 @@ class SMA_Cross_Feature(Feature):
 
     def output_feature_array(self) -> np.ndarray:
         """output array
-
+            each feature represents:
+            (T, T-1, T-2, ..., T-dimensional+1)
         Returns:
             np.ndarray: array
         """

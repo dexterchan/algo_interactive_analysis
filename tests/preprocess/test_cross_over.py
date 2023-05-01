@@ -2,7 +2,7 @@
 from preprocess_data.domains.features_gen import SMA_Cross_Feature
 from preprocess_data.domains.indicators import calculate_simple_moving_average
 import numpy as np
-
+import pytest
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ def test_sma_calcuation(get_test_ascending_mkt_data) -> None:
 
 
 def test_sma_cross_over(get_test_decending_then_ascending_mkt_data) -> None:
-    length = 20
+    length = 16
     close_price = get_test_decending_then_ascending_mkt_data(dim=length)["close"]
 
     sma_cross = SMA_Cross_Feature(
@@ -41,48 +41,33 @@ def test_sma_cross_over(get_test_decending_then_ascending_mkt_data) -> None:
 
     sma_cross_features = sma_cross.output_feature_array()
 
-    ref_data = np.array(
+    ref_data = [
         [
-            [
-                0,
-                0,
-                0,
-            ],
-            [
-                0,
-                0,
-                0,
-            ],
-            [
-                0,
-                0,
-                0,
-            ],
-            [
-                0,
-                0,
-                0,
-            ],
-            [
-                0,
-                0,
-                1,
-            ],
-            [
-                0,
-                1,
-                0,
-            ],
-            [
-                1,
-                0,
-                0,
-            ],
-            [
-                0,
-                0,
-                0,
-            ],
-        ]
-    )
+            0,
+            0,
+            0,
+        ],
+        [
+            0,
+            0,
+            0,
+        ],
+        [
+            1,
+            0,
+            0,
+        ],
+        [
+            0,
+            1,
+            0,
+        ],
+        [
+            0,
+            0,
+            1,
+        ],
+    ]
+
+    logger.info(sma_cross_features)
     assert (ref_data == sma_cross_features).all()
