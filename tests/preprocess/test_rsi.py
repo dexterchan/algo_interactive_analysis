@@ -35,7 +35,7 @@ def test_rsi_feature(get_test_decending_then_ascending_mkt_data) -> None:
         df_price=mktdata_close, dimension=LOOK_BACK, rsi_window=rsi_window
     )
 
-    raw_rsi = rsi_feature._calculate()
+    # raw_rsi = rsi_feature._calculate()
     feature_array = rsi_feature.output_feature_array()
 
     assert len(feature_array) == len(mktdata_close) - LOOK_BACK - rsi_window + 1
@@ -53,5 +53,13 @@ def test_rsi_feature(get_test_decending_then_ascending_mkt_data) -> None:
         [64.43632986, 60.72223545, 56.50421313],
     ]
     assert np.allclose(feature_array, ref_data, atol=TOLERANCE)
+
+    normalized_feature_array = rsi_feature.output_feature_array(normalize=True)
+
+    assert (normalized_feature_array < 1).all()
+    assert (normalized_feature_array > -1).all()
+    assert (normalized_feature_array < 0).any()
+    assert (normalized_feature_array > 0).any()
+    # logger.info(f"normalized_feature_array: {normalized_feature_array}")
 
     pass

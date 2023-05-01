@@ -205,9 +205,10 @@ class SMA_Cross_Feature(Feature):
         Returns:
             tuple: shape of the feature array
         """
-        # invalid_data_length = max(self.sma_window_1, self.sma_window_2) - 1
+
         return (
-            len(self.df_price) - self.invalid_data_length - self.dimension,
+            self.feature_length(len(self.df_price), self.dimension)
+            - self.invalid_data_length,
             self.dimension,
         )
 
@@ -282,4 +283,10 @@ class RSI_Feature(Feature):
         Returns:
             tuple: shape of the feature array
         """
-        return len(self.df_price) - self.rsi_window - self.dimension, self.dimension
+        return (
+            self.feature_length(len(self.df_price), self.dimension)
+            - self.rsi_window
+            - 1,
+            self.dimension,
+        )
+        # return len(self.df_price) - self.rsi_window - self.dimension, self.dimension

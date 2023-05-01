@@ -40,6 +40,9 @@ def test_sma_cross_over(get_test_decending_then_ascending_mkt_data) -> None:
     logger.info(f"cross_over: {cross_over}")
 
     sma_cross_features = sma_cross.output_feature_array()
+    num_features, dim = sma_cross.shape
+    assert len(sma_cross_features) == num_features
+    assert dim == LOOK_BACK
 
     ref_data = [
         [
