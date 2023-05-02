@@ -1,6 +1,7 @@
 # testing for preprocess.domain.features.SMA_Cross_Feature
 from preprocess_data.domains.features_gen import SMA_Cross_Feature
 from preprocess_data.domains.indicators import calculate_simple_moving_average
+from preprocess_data.port.interfaces import SMA_Cross_Feature_Interface
 import numpy as np
 import pytest
 import logging
@@ -74,3 +75,18 @@ def test_sma_cross_over(get_test_decending_then_ascending_mkt_data) -> None:
 
     logger.info(sma_cross_features)
     assert (ref_data == sma_cross_features).all()
+
+def test_initialization_from_port(get_test_decending_then_ascending_mkt_data) -> None:
+    close_price = get_test_decending_then_ascending_mkt_data(dim=1000)["close"]
+    sma_cross_interface = SMA_Cross_Feature_Interface(
+        sma_window_1=20,
+        sma_window_2=100,
+        dimension=3
+    )
+
+    sma_feature = SMA_Cross_Feature(**(sma_cross_interface._asdict()), df_price=close_price)
+    sma_feature_array = sma_feature.output_feature_array()
+    num_features, dim = sma_feature.shape
+    assert len(sma_feature_array) == num_features
+    assert dim == sma_feature_array.shape[1]
+    
