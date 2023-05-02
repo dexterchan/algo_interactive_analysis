@@ -51,7 +51,7 @@ def create_feature_from_close_price(
     for f_def in feature_pools:
         # initialize feature instance from namedtuple
         feature = _initialize_price_feature_instance(nt=f_def.data, price=close_price)
-        feature_array = feature.output_feature_array()
+        feature_array = feature.output_feature_array(normalize=True)
         feature_set.append(feature_array)
     # Find the shortest feature length in feature_set
     shortest_feature_length = min([len(f) for f in feature_set])

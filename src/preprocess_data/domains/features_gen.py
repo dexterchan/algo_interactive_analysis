@@ -17,7 +17,7 @@ class Feature(metaclass=ABCMeta):
     """feature class"""
 
     @abstractmethod
-    def output_feature_array(self) -> np.ndarray:
+    def output_feature_array(self, normalize: bool = False) -> np.ndarray:
         """output array
 
         Returns:
@@ -174,7 +174,7 @@ class SMA_Cross_Feature(Feature):
         )
         return _cross_over
 
-    def output_feature_array(self) -> np.ndarray:
+    def output_feature_array(self, normalize: bool = False) -> np.ndarray:
         """output array
             each feature represents:
             (T, T-1, T-2, ..., T-dimensional+1)
