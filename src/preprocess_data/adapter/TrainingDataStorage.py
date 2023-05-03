@@ -3,19 +3,25 @@ import pandas as pd
 import os
 from contextlib import ContextDecorator
 
+
 class TrainingDataStorage(ContextDecorator):
-    def __init__(self, buffer_size:int, datafile_prefix:str, outputfolder:str) -> None:
-        
+    def __init__(
+        self, buffer_size: int, datafile_prefix: str, output_folder: str
+    ) -> None:
         self.buffer_size = buffer_size
         self.datafile_prefix = datafile_prefix
-        self.outputfolder = outputfolder
-        self.buffer:pd.DataFrame = pd.DataFrame()
-        self.buffer_save_counter:int = 0
+        self.output_folder = output_folder
+        self.buffer: pd.DataFrame = pd.DataFrame()
+        self.buffer_save_counter: int = 0
+        # Create output folder if not exist
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+
         pass
 
-    def save_data(self, data:pd.DataFrame)->None:
+    def save_data(self, data: pd.DataFrame) -> None:
         # Append data to buffer
-        self.buffer = self.buffer.append(data)
+        self.buffer = pd.concat([self.buffer, data])
 
         # Check if buffer is full
         if len(self.buffer) >= self.buffer_size:
@@ -29,7 +35,7 @@ class TrainingDataStorage(ContextDecorator):
     def save_buffer(self) -> None:
         # Save buffer to file
         filename = f"{self.datafile_prefix}_{self.buffer_save_counter}.parquet"
-        filepath = os.path.join(self.outputfolder, filename)
+        filepath = os.path.join(self.output_folder, filename)
         self.buffer.to_parquet(filepath)
         self.buffer_save_counter += 1
         # Clear buffer
@@ -45,7 +51,7 @@ class TrainingDataStorage(ContextDecorator):
 
     def __enter__(self):
         return self
-    
+
     def __exit__(self, *exc):
         self.save_remaining_data()
         return False
