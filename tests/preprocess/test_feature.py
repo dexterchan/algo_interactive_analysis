@@ -13,8 +13,9 @@ from preprocess_data.port.features import (
 )
 import pytest
 from preprocess_data.logging import get_logger
-
+from functools import reduce
 LOOK_BACK: int = 3
+LOG_PRICE_LOOKBACK: int=10
 logger = get_logger(__name__)
 
 
@@ -23,7 +24,7 @@ def get_feature_spec() -> list[Feature_Definition]:
     feature_definitions = [
         Feature_Definition(
             meta={"name": Feature_Enum.LOG_PRICE},
-            data=Log_Price_Feature_Interface(dimension=LOOK_BACK),
+            data=Log_Price_Feature_Interface(dimension=LOG_PRICE_LOOKBACK),
         ),
         Feature_Definition(
             meta={"name": Feature_Enum.RSI},
@@ -67,10 +68,10 @@ def test_feature_preparation(
         num_log_price_feature, num_sma_cross_feature, num_rsi_feature
     )
 
-    logger.info(f"RSI feature size: {num_rsi_feature}")
-    logger.info(f"Log price feature size: {num_log_price_feature}")
-    logger.info(f"SMA cross feature size: {num_sma_cross_feature}")
-    logger.info(f"Expected feature size: {expected_feature_size}")
+    logger.debug(f"RSI feature size: {num_rsi_feature}")
+    logger.debug(f"Log price feature size: {num_log_price_feature}")
+    logger.debug(f"SMA cross feature size: {num_sma_cross_feature}")
+    logger.debug(f"Expected feature size: {expected_feature_size}")
 
     feature_array = create_feature_from_close_price(
         ohlcv_candles=candles, feature_pools=spec_list
@@ -78,13 +79,15 @@ def test_feature_preparation(
     # Check feature array here
     num_features, dim = feature_array.shape
     assert num_features == expected_feature_size
-    assert dim == LOOK_BACK * len(spec_list)
-    # logger.info(f"Feature array: {feature_array[:3]}")
+    look_back_list:list[int] = [ s.data.dimension for s in spec_list]
+    assert dim == reduce((lambda x,y:x+y), look_back_list )
+    
+   
 
     expected_log_price_feature_array = log_price_feature_array[-expected_feature_size:]
     expected_rsi_feature_array = rsi_feature_array[-expected_feature_size:]
     expected_sma_cross_feature_array = sma_cross_feature_array[-expected_feature_size:]
-    assert (expected_log_price_feature_array == feature_array[:, :3]).all()
-    assert (expected_rsi_feature_array == feature_array[:, 3:6]).all()
-    assert (expected_sma_cross_feature_array == feature_array[:, 6:]).all()
+    assert (expected_log_price_feature_array == feature_array[:, :look_back_list[0]]).all()
+    assert (expected_rsi_feature_array == feature_array[:, look_back_list[0]:look_back_list[0] + look_back_list[1]]).all()
+    assert (expected_sma_cross_feature_array == feature_array[:, look_back_list[0] + look_back_list[1]:]).all()
     pass

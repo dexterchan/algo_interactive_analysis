@@ -38,7 +38,7 @@ def test_sma_cross_over(get_test_decending_then_ascending_mkt_data) -> None:
     sma_cross_indices = np.where(cross_over == True)[0] + sma_cross.invalid_data_length
     assert len(sma_cross_indices) == 1
 
-    logger.info(f"cross_over: {cross_over}")
+    #logger.info(f"cross_over: {cross_over}")
 
     sma_cross_features = sma_cross.output_feature_array()
     num_features, dim = sma_cross.shape
@@ -73,7 +73,7 @@ def test_sma_cross_over(get_test_decending_then_ascending_mkt_data) -> None:
         ],
     ]
 
-    logger.info(sma_cross_features)
+    #logger.info(sma_cross_features)
     assert (ref_data == sma_cross_features).all()
 
 def test_initialization_from_port(get_test_decending_then_ascending_mkt_data) -> None:
