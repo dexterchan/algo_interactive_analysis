@@ -9,6 +9,7 @@ from ..logging import get_logger
 
 logger = get_logger(__name__)
 
+
 def prepare_training_data_and_eval_from_parquet(
     exchange: str,
     symbol: str,
@@ -53,14 +54,15 @@ def prepare_training_data_and_eval_from_parquet(
         split_ratio=split_ratio,
     )
 
-    def _save_data_to_storage(data_type:str, time_ranges:list[tuple])->None:
+    def _save_data_to_storage(data_type: str, time_ranges: list[tuple]) -> None:
         with TrainingDataStorage(
-            output_folder=os.path.join(output_folder,data_type),
+            output_folder=os.path.join(output_folder, data_type),
             buffer_size=10000,
             datafile_prefix=f"data",
         ) as data_storage:
-            for _start_date, _end_date in time_ranges:
+            for i, time_ranges in enumerate(time_ranges):
                 # convert _start_date and _end_date to int in ms
+                _start_date, _end_date = time_ranges
                 _start_date_ms = int(_start_date.timestamp() * 1000)
                 _end_date_ms = int(_end_date.timestamp() * 1000)
                 # Get  candles
@@ -69,25 +71,25 @@ def prepare_training_data_and_eval_from_parquet(
                     from_time=_start_date_ms,
                     to_time=_end_date_ms,
                 )
+
                 # Resample training candles
                 candles_sampled: pd.DataFrame = resample_timeframe(
                     data=candles,
                     tf=candle_size,
                 )
+
                 # Filter candles
                 if len(candles_sampled) < min_candle_population:
                     continue
+
+                candles_sampled["scenario"] = i
+
                 # Save training candles
                 data_storage.save_data(candles_sampled)
             logger.info(f"Written {data_type} data: {data_storage.written_rows}")
         pass
-    _save_data_to_storage(
-        data_type="training",
-        time_ranges=training_time_range
-    )
-    _save_data_to_storage(
-        data_type="eval",
-        time_ranges=eval_time_range
-    )
+
+    _save_data_to_storage(data_type="training", time_ranges=training_time_range)
+    _save_data_to_storage(data_type="eval", time_ranges=eval_time_range)
 
     pass

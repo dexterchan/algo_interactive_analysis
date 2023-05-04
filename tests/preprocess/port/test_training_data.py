@@ -16,8 +16,8 @@ test_data_dir = "notebooks/data"
 
 
 def test_prepare_training_data_and_eval_from_parquet() -> None:
-    start_date = datetime(2021, 1, 1)
-    end_date = start_date + timedelta(days=7 * 100)
+    start_date = datetime(2020, 1, 1)
+    end_date = start_date + timedelta(days=7 * 200)
     data_length = timedelta(days=7)
     split_ratio = 0.8
 

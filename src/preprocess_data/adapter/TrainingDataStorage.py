@@ -2,6 +2,9 @@
 import pandas as pd
 import os
 from contextlib import ContextDecorator
+from ..logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class TrainingDataStorage(ContextDecorator):
@@ -16,7 +19,7 @@ class TrainingDataStorage(ContextDecorator):
         # Create output folder if not exist
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
-        self._written_rows:int = 0
+        self._written_rows: int = 0
         pass
 
     def save_data(self, data: pd.DataFrame) -> None:
@@ -55,8 +58,11 @@ class TrainingDataStorage(ContextDecorator):
 
     def __exit__(self, *exc):
         self.save_remaining_data()
+        logger.info(
+            f"Training data storage closed in {self.output_folder}, total written: {self.written_rows}"
+        )
         return False
-    
+
     @property
     def written_rows(self) -> int:
         return self._written_rows
