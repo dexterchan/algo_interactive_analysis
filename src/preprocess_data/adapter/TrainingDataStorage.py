@@ -16,7 +16,7 @@ class TrainingDataStorage(ContextDecorator):
         # Create output folder if not exist
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
-
+        self._written_rows:int = 0
         pass
 
     def save_data(self, data: pd.DataFrame) -> None:
@@ -37,6 +37,7 @@ class TrainingDataStorage(ContextDecorator):
         filename = f"{self.datafile_prefix}_{self.buffer_save_counter}.parquet"
         filepath = os.path.join(self.output_folder, filename)
         self.buffer.to_parquet(filepath)
+        self._written_rows += len(self.buffer)
         self.buffer_save_counter += 1
         # Clear buffer
         self.buffer = pd.DataFrame()
@@ -55,3 +56,7 @@ class TrainingDataStorage(ContextDecorator):
     def __exit__(self, *exc):
         self.save_remaining_data()
         return False
+    
+    @property
+    def written_rows(self) -> int:
+        return self._written_rows

@@ -4,7 +4,10 @@ from datetime import datetime, timedelta
 from ..domains.training_data import splitting_training_and_eval_time_range
 import pandas as pd
 from ..adapter.TrainingDataStorage import TrainingDataStorage
+import os
+from ..logging import get_logger
 
+logger = get_logger(__name__)
 
 def prepare_training_data_and_eval_from_parquet(
     exchange: str,
@@ -50,30 +53,41 @@ def prepare_training_data_and_eval_from_parquet(
         split_ratio=split_ratio,
     )
 
-    with TrainingDataStorage(
-        output_folder=output_folder,
-        buffer_size=10000,
-        datafile_prefix=f"training_data",
-    ) as train_data_storage:
-        for training_start_date, training_end_date in training_time_range:
-            # convert traing_start_date and training_end_date to int in ms
-            training_start_date_ms = int(training_start_date.timestamp() * 1000)
-            training_end_date_ms = int(training_end_date.timestamp() * 1000)
-            # Get training candles
-            candles: pd.Dataframe = db_client.get_candles(
-                symbol=symbol,
-                from_time=training_start_date_ms,
-                to_time=training_end_date_ms,
-            )
-            # Resample training candles
-            candles_sampled: pd.DataFrame = resample_timeframe(
-                data=candles,
-                tf=candle_size,
-            )
-            # Filter candles
-            if len(candles_sampled) < min_candle_population:
-                continue
-            # Save training candles
-            train_data_storage.save_data(candles_sampled)
+    def _save_data_to_storage(data_type:str, time_ranges:list[tuple])->None:
+        with TrainingDataStorage(
+            output_folder=os.path.join(output_folder,data_type),
+            buffer_size=10000,
+            datafile_prefix=f"data",
+        ) as data_storage:
+            for _start_date, _end_date in time_ranges:
+                # convert _start_date and _end_date to int in ms
+                _start_date_ms = int(_start_date.timestamp() * 1000)
+                _end_date_ms = int(_end_date.timestamp() * 1000)
+                # Get  candles
+                candles: pd.Dataframe = db_client.get_candles(
+                    symbol=symbol,
+                    from_time=_start_date_ms,
+                    to_time=_end_date_ms,
+                )
+                # Resample training candles
+                candles_sampled: pd.DataFrame = resample_timeframe(
+                    data=candles,
+                    tf=candle_size,
+                )
+                # Filter candles
+                if len(candles_sampled) < min_candle_population:
+                    continue
+                # Save training candles
+                data_storage.save_data(candles_sampled)
+            logger.info(f"Written {data_type} data: {data_storage.written_rows}")
+        pass
+    _save_data_to_storage(
+        data_type="training",
+        time_ranges=training_time_range
+    )
+    _save_data_to_storage(
+        data_type="eval",
+        time_ranges=eval_time_range
+    )
 
     pass
